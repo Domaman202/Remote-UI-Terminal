@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "ruit",
+  "version": "${version}",
+
+  "name": "Remote UI Terminal",
+  "description": "This is an example description! Tell everyone what your mod is about!",
+  "authors": [
+    "DomamaN202"
+  ],
+  "contact": {
+    "homepage": "-",
+    "sources": "-"
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/ruit/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ru.DmN.ruit.Main"
+    ],
+    "client": [
+      "ru.DmN.ruit.MainClient"
+    ]
+  },
+  "mixins": [
+    "ruit.mixins.json"
+  ],
+  "accessWidener" : "ruit.accesswidener",
+
+  "depends": {
+    "fabricloader": ">=0.14.19",
+    "fabric-api": "*",
+    "minecraft": "~1.19.4",
+    "java": ">=17"
+  }
+}
