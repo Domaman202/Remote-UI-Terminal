@@ -8,8 +8,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtLong;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -31,11 +33,14 @@ public class RUITItem extends Item implements NamedScreenHandlerFactory {
             return ActionResult.PASS;
         if (player.isSneaking()) {
             var nbt = context.getStack().getOrCreateNbt();
-            var list = (NbtList) nbt.get("terminals");
-            if (list.size() < nbt.getInt("size")) {
-                list.add(NbtLong.of(context.getBlockPos().asLong()));
-                nbt.put("terminals", list);
-                player.sendMessage(Text.translatable("text.ruit.save", list.size() + 1));
+            var positions = (NbtList) nbt.get("positions");
+            if (positions.size() < nbt.getInt("size")) {
+                var worlds = (NbtList) nbt.get("worlds");
+                worlds.add(NbtString.of(context.getWorld().getRegistryKey().getValue().toString()));
+                nbt.put("worlds", worlds);
+                positions.add(NbtLong.of(context.getBlockPos().asLong()));
+                nbt.put("positions", positions);
+                player.sendMessage(Text.translatable("text.ruit.save", positions.size() + 1));
                 return ActionResult.SUCCESS;
             } else {
                 player.sendMessage(Text.translatable("text.ruit.fail"));
@@ -73,7 +78,8 @@ public class RUITItem extends Item implements NamedScreenHandlerFactory {
         var stack = new ItemStack(Main.RUIT_ITEM);
         var nbt = stack.getOrCreateNbt();
         nbt.putInt("size", size);
-        nbt.put("terminals", new NbtList());
+        nbt.put("positions", new NbtList());
+        nbt.put("worlds", new NbtList());
         return stack;
     }
 }

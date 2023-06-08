@@ -63,7 +63,7 @@ public class RecipeManagerMixin {
                 }
                 if (terminal == null)
                     return false;
-                if (terminal.getOrCreateNbt().getInt("size") == 9 * 6)
+                if (terminal.getOrCreateNbt().getInt("size") == 9)
                     return false;
                 return super.matches(craftingInventory, world);
             }

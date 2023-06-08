@@ -9,38 +9,48 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtLong;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
 public class RUITScreenHandler extends GenericContainerScreenHandler {
-    protected final NbtList nbt;
+    protected final NbtCompound nbt;
 
     public RUITScreenHandler(int syncId, PlayerInventory playerInventory) {
-        super(ScreenHandlerType.GENERIC_9X6, syncId, playerInventory, 6);
+        super(ScreenHandlerType.GENERIC_9X1, syncId, playerInventory, 1);
         this.nbt = null;
     }
 
     public RUITScreenHandler(int syncId, PlayerInventory playerInventory, ItemStack stack) {
-        super(ScreenHandlerType.GENERIC_9X6, syncId, playerInventory, new InventoryImpl(stack, playerInventory.player), 6);
-        this.nbt = (NbtList) stack.getOrCreateNbt().get("terminals");;
+        super(ScreenHandlerType.GENERIC_9X1, syncId, playerInventory, new InventoryImpl(stack, playerInventory.player), 1);
+        this.nbt = stack.getOrCreateNbt();
     }
 
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
         if (player instanceof ServerPlayerEntity) {
-            if (nbt.size() > slotIndex && slotIndex > -1) {
+            var positions = (NbtList) nbt.get("positions");
+            if (positions.size() > slotIndex && slotIndex > -1) {
                 if (button == 0) {
-                    var pos = getPos(nbt, slotIndex);
-                    var state = player.world.getBlockState(pos);
-                    state.getBlock().onUse(state, player.world, pos, player, player.getActiveHand(), new BlockHitResult(player.getPos(), Direction.UP, pos, true));
+                    var pos = getPos(positions, slotIndex);
+                    var world = getWorld((NbtList) nbt.get("worlds"), slotIndex, player);
+                    var state = world.getBlockState(pos);
+                    state.getBlock().onUse(state, world, pos, player, player.getActiveHand(), new BlockHitResult(player.getPos(), Direction.UP, pos, true));
                 } else if (button == 1) {
-                    nbt.remove(slotIndex);
+                    positions.remove(slotIndex);
+                    ((NbtList) nbt.get("worlds")).remove(slotIndex);
                 }
             }
         }
@@ -48,6 +58,10 @@ public class RUITScreenHandler extends GenericContainerScreenHandler {
 
     private static BlockPos getPos(NbtList nbt, int index) {
         return BlockPos.fromLong(((NbtLong) nbt.get(index)).longValue());
+    }
+
+    private static World getWorld(NbtList nbt, int index, PlayerEntity player) {
+        return ((ServerWorld) player.getWorld()).getServer().getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier(nbt.getString(index))));
     }
 
     @Override
@@ -67,7 +81,7 @@ public class RUITScreenHandler extends GenericContainerScreenHandler {
 
         @Override
         public int size() {
-            return 9 * 6;
+            return 9 * 1;
         }
 
         @Override
@@ -83,14 +97,15 @@ public class RUITScreenHandler extends GenericContainerScreenHandler {
                 item = Items.BARRIER;
                 name = "#";
             } else {
-                var list = (NbtList) nbt.get("terminals");
+                var list = (NbtList) nbt.get("positions");
                 if (list.size() <= slot) {
                     item = Items.GRAY_STAINED_GLASS_PANE;
                     name = "Пустая ячейка";
                 } else {
                     var pos = getPos(list, slot);
-                    item = player.world.getBlockState(pos).getBlock().asItem();
-                    name = pos.toShortString();
+                    var world = getWorld((NbtList) nbt.get("worlds"), slot, player);
+                    item = world.getBlockState(pos).getBlock().asItem();
+                    name = "[" + world.getRegistryKey().getValue().getPath() + "][" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]";
                 }
             }
             var stack = new ItemStack(item);
