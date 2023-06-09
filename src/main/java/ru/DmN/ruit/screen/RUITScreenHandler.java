@@ -1,5 +1,6 @@
 package ru.DmN.ruit.screen;
 
+import net.minecraft.block.entity.FurnaceBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -13,6 +14,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.MinecraftServer;
@@ -46,8 +49,13 @@ public class RUITScreenHandler extends GenericContainerScreenHandler {
                 if (button == 0) {
                     var pos = getPos(positions, slotIndex);
                     var world = getWorld((NbtList) nbt.get("worlds"), slotIndex, player);
-                    var state = world.getBlockState(pos);
-                    state.getBlock().onUse(state, world, pos, player, player.getActiveHand(), new BlockHitResult(player.getPos(), Direction.UP, pos, true));
+                    var entity = world.getBlockEntity(pos);
+                    if (entity instanceof NamedScreenHandlerFactory factory) {
+                        player.openHandledScreen(factory);
+                    } else {
+                        var state = world.getBlockState(pos);
+                        state.getBlock().onUse(state, world, pos, player, player.getActiveHand(), new BlockHitResult(player.getPos(), Direction.UP, pos, true));
+                    }
                 } else if (button == 1) {
                     positions.remove(slotIndex);
                     ((NbtList) nbt.get("worlds")).remove(slotIndex);
@@ -67,6 +75,12 @@ public class RUITScreenHandler extends GenericContainerScreenHandler {
     @Override
     public boolean canUse(PlayerEntity player) {
         return true;
+
+    }
+
+    @Override
+    public void onClosed(PlayerEntity player) {
+        super.onClosed(player);
     }
 
     public static class InventoryImpl implements Inventory {
