@@ -10,10 +10,10 @@
   ],
   "contact": {
     "homepage": "-",
-    "sources": "-"
+    "sources": "https://github.com/Domaman202/Remote-UI-Terminal"
   },
 
-  "license": "CC0-1.0",
+  "license": "MIT",
   "icon": "assets/ruit/icon.png",
 
   "environment": "*",
@@ -33,7 +33,7 @@
   "depends": {
     "fabricloader": ">=0.14.19",
     "fabric-api": "*",
-    "minecraft": "~1.19.4",
+    "minecraft": "~1.19",
     "java": ">=17"
   }
 }
