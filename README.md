@@ -1,3 +1,3 @@
 # Remote UI Terminal
 
-Discord: discord.gg/WNEDhYXBKr
+https://discord.gg/WNEDhYXBKr
